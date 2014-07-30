@@ -71,19 +71,24 @@ module Xcodeproj
     FILE_TYPES_BY_EXTENSION = {
       'a'           => 'archive.ar',
       'app'         => 'wrapper.application',
+      'bundle'      => 'wrapper.plug-in',
       'dylib'       => 'compiled.mach-o.dylib',
       'framework'   => 'wrapper.framework',
-      'bundle'      => 'wrapper.plug-in',
       'h'           => 'sourcecode.c.h',
       'm'           => 'sourcecode.c.objc',
+      'markdown'    => 'text',
+      'mdimporter'  => 'wrapper.cfbundle',
+      'octest'      => 'wrapper.cfbundle',
       'pch'         => 'sourcecode.c.h',
+      'plist'       => 'text.plist.xml',
+      'sh'          => 'text.script.sh',
+      'swift'       => 'sourcecode.swift',
+      'xcassets'    => 'folder.assetcatalog',
       'xcconfig'    => 'text.xcconfig',
       'xcdatamodel' => 'wrapper.xcdatamodel',
+      'xcodeproj'   => 'wrapper.pb-project',
+      'xctest'      => 'wrapper.cfbundle',
       'xib'         => 'file.xib',
-      'sh'          => 'text.script.sh',
-      'plist'       => 'text.plist.xml',
-      'markdown'    => 'text',
-      'xcassets'    => 'folder.assetcatalog'
     }.freeze
 
     # @return [Hash] The uniform type identifier of various product types.
@@ -111,13 +116,11 @@ module Xcodeproj
     #
     COMMON_BUILD_SETTINGS = {
       :all => {
-        'GCC_VERSION'                       => 'com.apple.compilers.llvm.clang.1_0',
         'GCC_PRECOMPILE_PREFIX_HEADER'      => 'YES',
         'PRODUCT_NAME'                      => '$(TARGET_NAME)',
         'SKIP_INSTALL'                      => 'YES',
         'DSTROOT'                           => '/tmp/xcodeproj.dst',
         'ALWAYS_SEARCH_USER_PATHS'          => 'NO',
-        'GCC_C_LANGUAGE_STANDARD'           => 'gnu99',
         'INSTALL_PATH'                      => "$(BUILT_PRODUCTS_DIR)",
         'OTHER_LDFLAGS'                     => '',
         'COPY_PHASE_STRIP'                  => 'YES',

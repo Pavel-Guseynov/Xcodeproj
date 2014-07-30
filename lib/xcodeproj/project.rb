@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'pathname'
+require 'securerandom'
 
 require 'xcodeproj/project/object'
 require 'xcodeproj/project/project_helper'
@@ -169,7 +170,7 @@ module Xcodeproj
     #
     def initialize_from_file
       pbxproj_path = path + 'project.pbxproj'
-      plist = Xcodeproj.read_plist(pbxproj_path.to_s)
+      plist = Xcodeproj::PlistHelper.read(pbxproj_path.to_s)
       root_object_uuid = plist['rootObject']
       root_object.remove_referrer(self) if root_object
       @root_object = new_from_plist(root_object_uuid, plist['objects'], self)
@@ -300,7 +301,7 @@ module Xcodeproj
       save_path ||= path
       FileUtils.mkdir_p(save_path)
       file = File.join(save_path, 'project.pbxproj')
-      Xcodeproj.write_plist(to_hash, file)
+      Xcodeproj::PlistHelper.write(to_hash, file)
       fix_encoding(file)
       XCProjHelper.touch(save_path) unless disable_xcproj
     end
@@ -371,7 +372,7 @@ module Xcodeproj
     # @note   Implementation detail: as objects usually are created serially
     #         this method creates a batch of UUID and stores the not colliding
     #         ones, so the search for collisions with known UUIDS (a
-    #         performance bottleneck) is performed is performed less often.
+    #         performance bottleneck) is performed less often.
     #
     # @return [String] A UUID unique to the project.
     #
@@ -404,7 +405,7 @@ module Xcodeproj
     # @return [void]
     #
     def generate_available_uuid_list(count = 100)
-      new_uuids = (0..count).map { Xcodeproj.generate_uuid }
+      new_uuids = (0..count).map { SecureRandom.hex(12).upcase }
       uniques = (new_uuids - (@generated_uuids + uuids))
       @generated_uuids += uniques
       @available_uuids += uniques
@@ -480,7 +481,7 @@ module Xcodeproj
     #
     def reference_for_path(absolute_path)
       absolute_pathname = Pathname.new(absolute_path)
-      
+
       unless absolute_pathname.absolute?
         raise ArgumentError, "Paths must be absolute #{absolute_path}"
       end
@@ -582,10 +583,10 @@ module Xcodeproj
     #         `:static_library`.
     #
     # @param  [String] name
-    #         the name of the static library product.
+    #         the name of the target product.
     #
     # @param  [Symbol] platform
-    #         the platform of the static library. Can be `:ios` or `:osx`.
+    #         the platform of the target. Can be `:ios` or `:osx`.
     #
     # @param  [String] deployment_target
     #         the deployment target for the platform.
@@ -702,7 +703,7 @@ module Xcodeproj
       end
 
       xcschememanagement_path = schemes_dir + 'xcschememanagement.plist'
-      Xcodeproj.write_plist(xcschememanagement, xcschememanagement_path)
+      Xcodeproj::PlistHelper.write(xcschememanagement, xcschememanagement_path)
     end
 
     #-------------------------------------------------------------------------#

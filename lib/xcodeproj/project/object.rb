@@ -65,7 +65,9 @@ module Xcodeproj
           @project, @uuid = project, uuid
           @isa = self.class.isa
           @referrers = []
-          raise "[Xcodeproj] Attempt to initialize an abstract class." unless @isa.match(/^(PBX|XC)/)
+          unless @isa.match(/^(PBX|XC)/)
+            raise "[Xcodeproj] Attempt to initialize an abstract class."
+          end
         end
 
         # Initializes the object with the default values of simple attributes.
@@ -100,7 +102,10 @@ module Xcodeproj
         #
         def remove_from_project
           project.objects_by_uuid.delete(uuid)
-          referrers.each { |referrer| referrer.remove_reference(self) }
+
+          referrers.dup.each { |referrer|
+            referrer.remove_reference(self)
+          }
 
           to_one_attributes.each do |attrb|
             object = attrb.get_value(self)
@@ -112,7 +117,10 @@ module Xcodeproj
             list.clear
           end
 
-          raise "[Xcodeproj] BUG: #{self} should have no referrers instead the following objects are still referencing it #{referrers}" unless referrers.count == 0
+          unless referrers.count == 0
+            raise "[Xcodeproj] BUG: #{self} should have no referrers instead" \
+              "the following objects are still referencing it #{referrers}"
+          end
         end
 
         # Returns the value of the name attribute or returns a generic name for
@@ -199,8 +207,8 @@ module Xcodeproj
         end
 
         # Informs the object that another object stopped referencing it. If the
-        # object has no other references it is removed form project UUIDs hash
-        # because it is unreachable.
+        # object has no other references it is removed from the project UUIDs
+        # hash because it is unreachable.
         #
         # @return [void]
         #
@@ -255,7 +263,10 @@ module Xcodeproj
         def configure_with_plist(objects_by_uuid_plist)
           object_plist = objects_by_uuid_plist[uuid].dup
 
-          raise "[Xcodeproj] Attempt to initialize `#{isa}` from plist with different isa `#{object_plist}`" unless object_plist['isa'] == isa
+          unless object_plist['isa'] == isa
+          raise "[Xcodeproj] Attempt to initialize `#{isa}` from plist with " \
+            "different isa `#{object_plist}`"
+          end
           object_plist.delete('isa')
 
           simple_attributes.each do |attrb|
@@ -297,9 +308,10 @@ module Xcodeproj
           end
 
           unless object_plist.empty?
-            raise "[!] Xcodeproj doesn't know about the following attributes " \
-                  "#{object_plist.inspect} for the '#{isa}' isa.\n" \
-                  "Please file an issue: https://github.com/CocoaPods/Xcodeproj/issues/new"
+            raise "[!] Xcodeproj doesn't know about the following " \
+                  "attributes #{object_plist.inspect} for the '#{isa}' isa." \
+                  "\nPlease file an issue: " \
+                  "https://github.com/CocoaPods/Xcodeproj/issues/new"
           end
         end
 
@@ -327,15 +339,15 @@ module Xcodeproj
         def object_with_uuid(uuid, objects_by_uuid_plist, attribute)
           unless object = project.objects_by_uuid[uuid] || project.new_from_plist(uuid, objects_by_uuid_plist)
             UI.warn "`#{inspect}` attempted to initialize an object with " \
-              "an unknown UUID. `#{uuid}` for attribute: `#{attribute.name}`."\
-              " This can be the result of a merge and the unknown UUID is "    \
-              "being discarded."
+              "an unknown UUID. `#{uuid}` for attribute: " \
+              "`#{attribute.name}`. This can be the result of a merge and  " \
+              "the unknown UUID is being discarded."
           end
           object
         rescue NameError
           attributes = objects_by_uuid_plist[uuid]
           raise "`#{isa}` attempted to initialize an object with unknown ISA "\
-                "`#{attributes['isa']}` from attributes: `#{attributes}`\n"   \
+                "`#{attributes['isa']}` from attributes: `#{attributes}`\n" \
                 "Please file an issue: https://github.com/CocoaPods/Xcodeproj/issues/new"
         end
 
@@ -454,9 +466,10 @@ module Xcodeproj
   end
 end
 
-require 'xcodeproj/project/object_list'
-require 'xcodeproj/project/object_dictionary'
+require 'xcodeproj/project/case_converter'
 require 'xcodeproj/project/object_attributes'
+require 'xcodeproj/project/object_dictionary'
+require 'xcodeproj/project/object_list'
 
 # Required because some classes have cyclical references to each other.
 #

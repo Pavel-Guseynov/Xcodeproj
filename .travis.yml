@@ -1,12 +1,14 @@
-
 # Sets Travis to run the Ruby specs on OS X machines which are required to
 # build the native extensions of Xcodeproj.
 #
 language: objective-c
+addons:
+ code_climate:
+   repo_token: fcf708528e1eca6e8a8bf8f7be3bd24e4478b019c4cd7860325c141dd52aa152 
 
 env:
   - RVM_RUBY_VERSION=system
-  - RVM_RUBY_VERSION=1.8.7-p358
+  # - RVM_RUBY_VERSION=1.8.7-p358
 
 before_install:
   - curl http://curl.haxx.se/ca/cacert.pem -o /usr/local/share/cacert.pem
