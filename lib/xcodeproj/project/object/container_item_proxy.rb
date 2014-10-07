@@ -1,7 +1,6 @@
 module Xcodeproj
   class Project
     module Object
-
       # Apparently a proxy for another object which might belong another
       # project contained in the same workspace of the project document.
       #
@@ -19,7 +18,6 @@ module Xcodeproj
       #        xcodeproj to raise because ti can't find the UUID.
       #
       class PBXContainerItemProxy < AbstractObject
-
         # @!group Attributes
 
         # @return [String] apparently the UUID of the root object
@@ -38,7 +36,8 @@ module Xcodeproj
         #         If this assumption is incorrect, there could be loss of
         #         information opening and saving an existing project.
         #
-        # TODO this is the external reference that 'contains' other proxy items
+        # @todo   This is the external reference that 'contains' other proxy
+        #         items.
         attribute :container_portal, String
 
         # @return [String] the type of the proxy.
@@ -66,7 +65,6 @@ module Xcodeproj
         #         the proxy.
         #
         attribute :remote_info, String
-
       end
     end
   end

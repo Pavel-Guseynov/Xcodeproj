@@ -7,7 +7,6 @@ require 'xcodeproj/project/project_helper'
 require 'xcodeproj/project/xcproj_helper'
 
 module Xcodeproj
-
   # This class represents a Xcode project document.
   #
   # It can be used to manipulate existing documents or even create new ones
@@ -40,7 +39,6 @@ module Xcodeproj
   # consistent state.
   #
   class Project
-
     include Object
 
     # @return [Pathname] the path of the project.
@@ -64,7 +62,7 @@ module Xcodeproj
         initialize_from_scratch
       end
       unless skip_initialization.is_a?(TrueClass) || skip_initialization.is_a?(FalseClass)
-        raise ArgumentError, "[Xcodeproj] Initialization parameter expected to " \
+        raise ArgumentError, '[Xcodeproj] Initialization parameter expected to ' \
           "be a boolean #{skip_initialization}"
       end
     end
@@ -130,12 +128,16 @@ module Xcodeproj
       "#<#{self.class}> path:`#{path}` UUID:`#{root_object.uuid}`"
     end
 
-    alias :inspect :to_s
+    alias_method :inspect, :to_s
 
-    # @return [Bool] Whether the xcproj conversion should be disabled.
+    # @return [Bool] Whether the xcproj conversion should be disabled. The
+    #         conversion can be disable also via the
+    #         `XCODEPROJ_DISABLE_XCPROJ` environment variable.
     #
     attr_accessor :disable_xcproj
-
+    def disable_xcproj?
+      @disable_xcproj || ENV['XCODEPROJ_DISABLE_XCPROJ']
+    end
 
     public
 
@@ -182,15 +184,14 @@ module Xcodeproj
         raise "[Xcodeproj] Unable to find a root object in #{pbxproj_path}."
       end
 
-      if (archive_version.to_i > Constants::LAST_KNOWN_ARCHIVE_VERSION)
+      if archive_version.to_i > Constants::LAST_KNOWN_ARCHIVE_VERSION
         raise '[Xcodeproj] Unknown archive version.'
       end
 
-      if (object_version.to_i > Constants::LAST_KNOWN_OBJECT_VERSION)
+      if object_version.to_i > Constants::LAST_KNOWN_OBJECT_VERSION
         raise '[Xcodeproj] Unknown object version.'
       end
     end
-
 
     public
 
@@ -278,7 +279,7 @@ module Xcodeproj
       {
         'File References' => root_object.main_group.pretty_print.values.first,
         'Targets' => root_object.targets.map(&:pretty_print),
-        'Build Configurations' => build_configurations.sort_by(&:name).map(&:pretty_print)
+        'Build Configurations' => build_configurations.sort_by(&:name).map(&:pretty_print),
       }
     end
 
@@ -303,7 +304,7 @@ module Xcodeproj
       file = File.join(save_path, 'project.pbxproj')
       Xcodeproj::PlistHelper.write(to_hash, file)
       fix_encoding(file)
-      XCProjHelper.touch(save_path) unless disable_xcproj
+      XCProjHelper.touch(save_path) unless disable_xcproj?
     end
 
     # Simple workaround to escape characters which are outside of ASCII
@@ -336,7 +337,6 @@ module Xcodeproj
       end
       File.open(filename, 'wb') { |file| file.write(output) }
     end
-
 
     public
 
@@ -377,9 +377,7 @@ module Xcodeproj
     # @return [String] A UUID unique to the project.
     #
     def generate_uuid
-      while @available_uuids.empty?
-        generate_available_uuid_list
-      end
+      generate_available_uuid_list while @available_uuids.empty?
       @available_uuids.shift
     end
 
@@ -410,7 +408,6 @@ module Xcodeproj
       @generated_uuids += uniques
       @available_uuids += uniques
     end
-
 
     public
 
@@ -543,7 +540,6 @@ module Xcodeproj
       root_object.build_configuration_list.build_settings(name)
     end
 
-
     public
 
     # @!group Helpers
@@ -632,7 +628,9 @@ module Xcodeproj
     #
     def add_build_configuration(name, type)
       build_configuration_list = root_object.build_configuration_list
-      unless build_configuration_list[name]
+      if build_configuration = build_configuration_list[name]
+        build_configuration
+      else
         build_configuration = new(XCBuildConfiguration)
         build_configuration.name = name
         common_settings = Constants::PROJECT_DEFAULT_BUILD_SETTINGS
@@ -656,7 +654,6 @@ module Xcodeproj
     def sort(options = nil)
       root_object.sort_recursively(options)
     end
-
 
     public
 
@@ -689,6 +686,7 @@ module Xcodeproj
     def recreate_user_schemes(visible = true)
       schemes_dir = XCScheme.user_data_dir(path)
       FileUtils.rm_rf(schemes_dir)
+      FileUtils.mkdir_p(schemes_dir)
 
       xcschememanagement = {}
       xcschememanagement['SchemeUserState'] = {}
@@ -707,6 +705,5 @@ module Xcodeproj
     end
 
     #-------------------------------------------------------------------------#
-
   end
 end

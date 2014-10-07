@@ -4,7 +4,7 @@
 desc 'Install dependencies'
 task :bootstrap do
   if system('which bundle')
-    sh "bundle install"
+    sh 'bundle install'
   else
     $stderr.puts "\033[0;31m" \
       "[!] Please install the bundler gem manually:\n" \
@@ -17,20 +17,20 @@ end
 begin
 
   task :build do
-    title "Building the gem"
+    title 'Building the gem'
   end
 
-  require "bundler/gem_tasks"
+  require 'bundler/gem_tasks'
 
   # Release tasks
   #-----------------------------------------------------------------------------#
 
-  desc "Build the gem for distribution"
+  desc 'Build the gem for distribution'
   task :release_build => :build
 
-  desc "Runs the tasks necessary for the release of the gem"
+  desc 'Runs the tasks necessary for the release of the gem'
   task :pre_release do
-    title "Running pre-release tasks"
+    title 'Running pre-release tasks'
     tmp = File.expand_path('../tmp', __FILE__)
     sh "rm -rf '#{tmp}'"
     Rake::Task[:release_build].invoke
@@ -51,35 +51,46 @@ begin
   #-----------------------------------------------------------------------------#
 
   namespace :spec do
-    desc "Run all specs"
+    desc 'Run all specs'
     task :all do
       puts "\n\033[0;32mUsing #{`ruby --version`.chomp}\033[0m"
-      title "Running the specs"
-      ENV['GENERATE_COVERAGE'] = 'true'
+      title 'Running the specs'
       sh "bundle exec bacon #{FileList['spec/**/*_spec.rb'].join(' ')}"
+
+      Rake::Task['rubocop'].invoke if RUBY_VERSION >= '1.9.3'
     end
 
-    desc "Automatically run specs"
+    desc 'Automatically run specs'
     task :kick do
-      exec "bundle exec kicker -c"
+      exec 'bundle exec kicker -c'
     end
 
-    desc "Run single spec"
-    task :single, :spec_file do |t, args|
+    desc 'Run single spec'
+    task :single, :spec_file do |_t, args|
       sh "bundle exec bacon #{args.spec_file}"
     end
   end
 
-  desc "Run all specs"
+  desc 'Run all specs'
   task :spec => 'spec:all'
 
   task :default => :spec
 
-rescue LoadError
+  #-- RuboCop ----------------------------------------------------------------#
+
+  if RUBY_VERSION >= '1.9.3'
+    require 'rubocop/rake_task'
+    RuboCop::RakeTask.new
+  end
+
+rescue LoadError, NameError => e
   $stderr.puts "\033[0;31m" \
     '[!] Some Rake tasks haven been disabled because the environment' \
     ' couldn’t be loaded. Be sure to run `rake bootstrap` first.' \
     "\e[0m"
+  $stderr.puts e.message
+  $stderr.puts e.backtrace
+  $stderr.puts
 end
 
 # UI Helpers
@@ -90,7 +101,7 @@ end
 def title(string)
   puts
   puts yellow(string)
-  puts "-" * 80
+  puts '-' * 80
 end
 
 # Prints a subtitle

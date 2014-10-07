@@ -2,7 +2,6 @@ module Xcodeproj
   class Project
     module XCProjHelper
       class << self
-
         # @return [Bool] Whether the xcproj tool is available.
         #
         def available?
@@ -47,7 +46,6 @@ module Xcodeproj
         end
 
         #---------------------------------------------------------------------#
-
       end
     end
   end

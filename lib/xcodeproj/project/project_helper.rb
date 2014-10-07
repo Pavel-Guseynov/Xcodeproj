@@ -1,7 +1,6 @@
 module Xcodeproj
   class Project
     module ProjectHelper
-
       include Object
 
       # @!group Targets
@@ -36,7 +35,6 @@ module Xcodeproj
       # @return [PBXNativeTarget] the target.
       #
       def self.new_target(project, type, name, platform, deployment_target, product_group)
-
         # Target
         target = project.new(PBXNativeTarget)
         project.targets << target
@@ -55,7 +53,7 @@ module Xcodeproj
 
         # Frameworks
         framework_name = (platform == :ios) ? 'Foundation' : 'Cocoa'
-        framework_ref = target.add_system_framework(framework_name)
+        target.add_system_framework(framework_name)
 
         target
       end
@@ -100,7 +98,6 @@ module Xcodeproj
         debug_conf.build_settings = build_settings
         cl.build_configurations << release_conf
         cl.build_configurations << debug_conf
-        cl
         target.build_configuration_list = cl
 
         # Product
@@ -114,7 +111,6 @@ module Xcodeproj
 
         target
       end
-
 
       # @!group Private Helpers
 
@@ -172,7 +168,7 @@ module Xcodeproj
           build_settings = {
             'PRODUCT_NAME' => '$(TARGET_NAME)',
             'WRAPPER_EXTENSION' => 'bundle',
-            'SKIP_INSTALL' => 'YES'
+            'SKIP_INSTALL' => 'YES',
           }
 
           if platform == :osx
@@ -222,7 +218,6 @@ module Xcodeproj
       end
 
       #-----------------------------------------------------------------------#
-
     end
   end
 end
